@@ -13,6 +13,7 @@ namespace PuzzleRunners
         {
             get
             {
+                // Tests can run in parallel, use locking to optimistically access/initialize the DataFolder property
                 if (_dataFolder == null)
                 {
                     lock (_locker)
@@ -36,12 +37,14 @@ namespace PuzzleRunners
         {
             get
             {
+                // Tests can run in parallel, use locking to optimistically access/initialize the Puzzle property
                 if (_puzzle == null)
                 {
                     lock (_locker)
                     {
                         if (_puzzle == null)
                         {
+                            // Use the default constructor to create an instance of the Puzzle  (which should implement the IPuzzle interface)
                             _puzzle = Activator.CreateInstance<T>();
                         }
 
@@ -84,9 +87,12 @@ namespace PuzzleRunners
             Assert.Equal(Puzzle2Solution, answer);
         }
 
+        /// <summary>
+        /// Generates test input data for the specified puzzle
+        /// </summary>
         public static IEnumerable<object[]> GetTestDataForPuzzle(int puzzleNumber)
         {
-            foreach(var testData in ReadTestInput())
+            foreach (var testData in ReadTestInput())
             {
                 yield return new object[]
                 {
@@ -96,36 +102,45 @@ namespace PuzzleRunners
             }
         }
 
+        /// <summary>
+        /// This is the real solution to Puzzle 2  (Once you submit your answer to AoC and comes back success, you should enter it here, so that your tests pass)
+        /// </summary>
         protected abstract string Puzzle1Solution { get; }
 
+        /// <summary>
+        /// This is the real solution to Puzzle 2  (Once you submit your answer to AoC and comes back success, you should enter it here, so that your tests pass)
+        /// </summary>
         protected abstract string Puzzle2Solution { get; }
-
 
         protected string[] ReadRealInput()
         {
+            // Read all the lines for the real puzzle input
             var fileName = Path.Combine(DataFolder, $"Input/{Puzzle.Day:D2}.txt");
             return File.ReadAllLines(fileName);
         }
 
         private static TestData[] ReadTestInput()
         {
-            //var folderName = Path.Combine(dataFolder, $"TestInput/Day{Puzzle.Day:D2}");
+            // Read the data for all of the test puzzle inputs
             var folderName = Path.Combine(DataFolder, $"TestInput/Day{Puzzle.Day:D2}");
 
+            // Get all txt files in the TestInput folder for the day
             var files = Directory.GetFiles(folderName, "*.txt");
-
 
             List<TestData> tests = new List<TestData>();
             foreach (var file in files)
             {
                 var data = File.ReadAllLines(file).ToList();
+
+                // First line is Puzzle1 Expected Result
                 var expectedResult1 = data[0];
                 data.RemoveAt(0);
 
+                // Second line is Puzzle1 Expected Result
                 var expectedResult2 = data[0];
                 data.RemoveAt(0);
 
-
+                // Third line is separator (check it, just in case they didnt use the first 2 lines as expected results by accident)
                 if (!data[0].StartsWith("-#-#-#-#-#-"))
                 {
                     throw new Exception("File does not confirm to Test input format. First 2 lines are expected outputs. 3rd line is a separator");
