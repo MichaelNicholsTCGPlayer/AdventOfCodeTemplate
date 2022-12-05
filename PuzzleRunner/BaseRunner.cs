@@ -56,10 +56,11 @@ namespace PuzzleRunners
         }
 
         [Theory]
-        [MemberData(nameof(GetTestDataForPuzzle), 1)]
-        public void Puzzle1TestsPass(string expected, string[] input)
+        [MemberData(nameof(GetTestDataFilePaths))]
+        public void Puzzle1TestsPass(string fileName)
         {
-            RunPuzzleTest(input, 1, expected);
+            var testData = ReadTestInput(fileName);
+            RunPuzzleTest(testData.Data, 1, testData.Expected1);
         }
 
         [Fact]
@@ -72,10 +73,11 @@ namespace PuzzleRunners
         }
 
         [Theory]
-        [MemberData(nameof(GetTestDataForPuzzle), 2)]
-        public void Puzzle2TestsPass(string expected, string[] input)
+        [MemberData(nameof(GetTestDataFilePaths))]
+        public void Puzzle2TestsPass(string fileName)
         {
-            RunPuzzleTest(input, 2, expected);
+            var testData = ReadTestInput(fileName);
+            RunPuzzleTest(testData.Data, 2, testData.Expected2);
         }
 
         [Fact]
@@ -87,20 +89,13 @@ namespace PuzzleRunners
             Assert.Equal(Puzzle2Solution, answer);
         }
 
-        /// <summary>
-        /// Generates test input data for the specified puzzle
-        /// </summary>
-        public static IEnumerable<object[]> GetTestDataForPuzzle(int puzzleNumber)
+        public static IEnumerable<object[]> GetTestDataFilePaths()
         {
-            foreach (var testData in ReadTestInput())
-            {
-                yield return new object[]
-                {
-                    puzzleNumber == 1 ? testData.Expected1 : testData.Expected2,
-                    testData.Data,
-                };
-            }
+            // Get all txt files in the TestInput folder for the day
+            return Directory.GetFiles(TestDataFolderPath, "*.txt").Select(r => new object[] { r.Replace(TestDataFolderPath, "") });
         }
+
+        private static string TestDataFolderPath => Path.Combine(DataFolder, $"TestInput\\Day{Puzzle.Day:D2}\\");
 
         /// <summary>
         /// This is the real solution to Puzzle 2  (Once you submit your answer to AoC and comes back success, you should enter it here, so that your tests pass)
@@ -115,42 +110,30 @@ namespace PuzzleRunners
         protected string[] ReadRealInput()
         {
             // Read all the lines for the real puzzle input
-            var fileName = Path.Combine(DataFolder, $"Input/{Puzzle.Day:D2}.txt");
+            var fileName = Path.Combine(DataFolder, $"Input\\{Puzzle.Day:D2}.txt");
             return File.ReadAllLines(fileName);
         }
 
-        private static TestData[] ReadTestInput()
+        private TestData ReadTestInput(string filePath)
         {
-            // Read the data for all of the test puzzle inputs
-            var folderName = Path.Combine(DataFolder, $"TestInput/Day{Puzzle.Day:D2}");
+            var data = File.ReadAllLines(Path.Combine(TestDataFolderPath, filePath)).ToList();
 
-            // Get all txt files in the TestInput folder for the day
-            var files = Directory.GetFiles(folderName, "*.txt");
+            // First line is Puzzle1 Expected Result
+            var expectedResult1 = data[0];
+            data.RemoveAt(0);
 
-            List<TestData> tests = new List<TestData>();
-            foreach (var file in files)
+            // Second line is Puzzle1 Expected Result
+            var expectedResult2 = data[0];
+            data.RemoveAt(0);
+
+            // Third line is separator (check it, just in case they didnt use the first 2 lines as expected results by accident)
+            if (!data[0].StartsWith("-#-#-#-#-#-"))
             {
-                var data = File.ReadAllLines(file).ToList();
-
-                // First line is Puzzle1 Expected Result
-                var expectedResult1 = data[0];
-                data.RemoveAt(0);
-
-                // Second line is Puzzle1 Expected Result
-                var expectedResult2 = data[0];
-                data.RemoveAt(0);
-
-                // Third line is separator (check it, just in case they didnt use the first 2 lines as expected results by accident)
-                if (!data[0].StartsWith("-#-#-#-#-#-"))
-                {
-                    throw new Exception("File does not confirm to Test input format. First 2 lines are expected outputs. 3rd line is a separator");
-                }
-                data.RemoveAt(0); // Remove Line
-
-                tests.Add(new TestData(expectedResult1, expectedResult2, data.ToArray()));
+                throw new Exception("File does not confirm to Test input format. First 2 lines are expected outputs. 3rd line is a separator");
             }
+            data.RemoveAt(0); // Remove Line
 
-            return tests.ToArray();
+            return new TestData(expectedResult1, expectedResult2, data.ToArray());
         }
 
         protected string RunPuzzle(string[] input, int puzzleNumber)
