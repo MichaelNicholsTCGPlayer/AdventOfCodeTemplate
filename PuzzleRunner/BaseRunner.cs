@@ -114,9 +114,9 @@ namespace PuzzleRunners
             return File.ReadAllLines(fileName);
         }
 
-        private TestData ReadTestInput(string filePath)
+        private TestData ReadTestInput(string fileName)
         {
-            var data = File.ReadAllLines(Path.Combine(TestDataFolderPath, filePath)).ToList();
+            var data = File.ReadAllLines(Path.Combine(TestDataFolderPath, fileName)).ToList();
 
             // First line is Puzzle1 Expected Result
             var expectedResult1 = data[0];
@@ -129,10 +129,11 @@ namespace PuzzleRunners
             // Third line is separator (check it, just in case they didnt use the first 2 lines as expected results by accident)
             if (!data[0].StartsWith("-#-#-#-#-#-"))
             {
-                throw new Exception("File does not confirm to Test input format. First 2 lines are expected outputs. 3rd line is a separator");
+                throw new Exception("File does not conform to Test input format. First 2 lines are expected outputs. 3rd line is a separator");
             }
-            data.RemoveAt(0); // Remove Line
+            data.RemoveAt(0); // Remove Separator Line
 
+            // Rest of the lines are valid test input
             return new TestData(expectedResult1, expectedResult2, data.ToArray());
         }
 
