@@ -98,7 +98,7 @@ namespace PuzzleRunners
         private static string TestDataFolderPath => Path.Combine(DataFolder, $"TestInput\\Day{Puzzle.Day:D2}\\");
 
         /// <summary>
-        /// This is the real solution to Puzzle 2  (Once you submit your answer to AoC and comes back success, you should enter it here, so that your tests pass)
+        /// This is the real solution to Puzzle 1  (Once you submit your answer to AoC and comes back success, you should enter it here, so that your tests pass)
         /// </summary>
         protected abstract string Puzzle1Solution { get; }
 
